@@ -20,7 +20,7 @@ export default function LikeButton({likeCount}: LikeProps) {
             flex items-center gap-1.5 text-sm transition-colors
             ${liked
                 ? "text-pink-500 hover:text-pink-400"
-                : "text-gray-400 hover:text-pink-500"
+                : "text-muted hover:text-pink-500"
             }`}
         >
             <Heart

@@ -12,9 +12,8 @@ export default async function TweetPage({params}: { params: Promise<{ id: string
     const tweet: TweetWithAuthor = await response.json();
 
     return (
-        <main className="max-w-xl mx-auto">
-            <h1 className="text-xl font-bold p-4 border-b border-gray-100">Tweet</h1>
+        <div className="max-w-xl mx-auto">
             <TweetCard tweet={tweet}/>
-        </main>
+        </div>
     );
 }

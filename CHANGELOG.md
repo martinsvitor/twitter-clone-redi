@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file, organized by feature/branch.
 
+## [Accessible Theme System]
+
+### Added
+- Theme hook (`hooks/use-theme.ts`) with localStorage persistence and system preference detection
+- WCAG AA-compliant color palette using CSS variables for light and dark modes
+- Header component with theme toggle button (Sun/Moon icons from lucide-react)
+- Inline script in layout.tsx to prevent flash of incorrect theme on page load
+- Semantic color tokens for consistent theming across components
+- Jest testing framework with React Testing Library
+- Unit tests for theme hook and Header component
+- Test scripts (`npm test` and `npm run test:watch`)
+
+### Changed
+- Updated all components to use semantic color classes instead of hardcoded Tailwind colors
+  - TweetCard: Replaced `text-gray-*` with `text-foreground`, `text-muted`, `border-border`
+  - LikeButton: Replaced `text-gray-400` with `text-muted`
+  - loading.tsx: Replaced `bg-gray-200` with `bg-muted/30`
+- Updated app/page.tsx to use Header component instead of hardcoded h1
+- Updated app/tweet/[id]/page.tsx to use Header component
+- Configured Tailwind CSS v4 to use CSS variables for semantic color tokens
+- Updated tsconfig.json to include Jest type definitions
+
+### Fixed
+- Theme toggle button not working (removed null return when not mounted, simplified to light/dark toggle)
+- Jest configuration issues (moved config files to root, added moduleNameMapper for @/ path resolution)
+
 ## [Reshape db.json to Prisma Model]
 
 ### Added
