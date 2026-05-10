@@ -1,8 +1,8 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project will be documented in this file, organized by feature/branch.
 
-## [Unreleased]
+## [Prisma Database Integration]
 
 ### Added
 - New Prisma-based API endpoints for PostgreSQL database access
@@ -18,3 +18,8 @@ All notable changes to this project will be documented in this file.
 ### Preserved
 - Existing file-based API routes (`/api/tweets` and `/api/tweets/[id]`) kept for educational reference
 - Local file storage (`db.json`) maintained to demonstrate both approaches
+
+## [Changelog Refactoring]
+
+### Changed
+- Changed changelog format from semantic versioning to feature-based entries for personal project tracking
