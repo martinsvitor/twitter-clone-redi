@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: #F9FAFB;
   --foreground: #09090b;
   --muted: #737373;
   --accent: #2563eb;
@@ -33,4 +33,5 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 300ms ease-in-out, color 300ms ease-in-out;
 }
