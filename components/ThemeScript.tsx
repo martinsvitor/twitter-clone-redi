@@ -1,6 +1,10 @@
+import Script from 'next/script';
+
 export default function ThemeScript() {
   return (
-    <script
+    <Script
+      id="theme-script"
+      strategy="afterInteractive"
       dangerouslySetInnerHTML={{
         __html: `
           (function() {
