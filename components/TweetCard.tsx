@@ -10,9 +10,14 @@ function CardContent({tweet}: { tweet: TweetWithAuthor }) {
             <Image
                 src={tweet.avatar}
                 alt={tweet.username}
+                style={{
+                    width: 48,
+                    height: 48
+                }}
                 width={48}
                 height={48}
-                className="rounded-full shrink-0"
+                className="rounded-full shrink-0 border border-gray-100"
+                unoptimized
             />
             <div className="flex flex-col gap-1 w-full">
                 <div className="flex items-center gap-2">
@@ -21,9 +26,7 @@ function CardContent({tweet}: { tweet: TweetWithAuthor }) {
                     <span className="text-sm text-gray-400 ml-auto">{tweet.timestamp}</span>
                 </div>
                 <p className="text-gray-800">{tweet.content}</p>
-                <div className="mt-2">
-                    <LikeButton likeCount={tweet.reactions.likes}/>
-                </div>
+
             </div>
         </div>
     );
@@ -32,10 +35,22 @@ function CardContent({tweet}: { tweet: TweetWithAuthor }) {
 export default function TweetCard({tweet, linkable = false}: TweetProps) {
     if (linkable) {
         return (
-            <Link href={`/tweet/${tweet.id}`}>
-                <CardContent tweet={tweet}/>
-            </Link>
+            <>
+                <Link href={`/tweet/${tweet.id}`}>
+                    <CardContent tweet={tweet}/>
+                </Link>
+                <div className="mt-2">
+                    <LikeButton likeCount={tweet.reactions.likes}/>
+                </div>
+            </>
         )
     }
-    return <CardContent tweet={tweet}/>;
+    return (
+        <>
+            <CardContent tweet={tweet}/>
+            <div className="mt-2">
+                <LikeButton likeCount={tweet.reactions.likes}/>
+            </div>
+        </>
+    );
 }
