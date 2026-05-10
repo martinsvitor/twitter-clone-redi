@@ -295,10 +295,6 @@ This is a teaching project. Feel free to:
 - Add new features
 - Improve documentation
 
-## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).
-
 ---
 
 **Built with ❤️ for ReDI School Web Development Bootcamp**
