@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file, organized b
 - Semantic color tokens for consistent theming across components
 - Jest testing framework with React Testing Library
 - Unit tests for theme hook and Header component
+- Theme transition animation for smooth theme changes
 - Test scripts (`npm test` and `npm run test:watch`)
 
 ### Changed
@@ -23,6 +24,7 @@ All notable changes to this project will be documented in this file, organized b
 - Updated app/tweet/[id]/page.tsx to use Header component
 - Configured Tailwind CSS v4 to use CSS variables for semantic color tokens
 - Updated tsconfig.json to include Jest type definitions
+- Updated background color in global.css
 
 ### Fixed
 - Theme toggle button not working (removed null return when not mounted, simplified to light/dark toggle)
