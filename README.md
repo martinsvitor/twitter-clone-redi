@@ -50,6 +50,14 @@ This project is designed to teach students:
 - **eslint (^9)** - JavaScript/TypeScript code linting for consistency and error detection
 - **eslint-config-next (16.2.4)** - ESLint configuration specifically for Next.js projects
 
+#### Testing
+- **jest (^30.4.2)** - JavaScript testing framework for unit and integration tests
+- **jest-environment-jsdom (^30.4.1)** - Jest environment for DOM testing
+- **@testing-library/react (^16.3.2)** - React testing utilities
+- **@testing-library/jest-dom (^6.9.1)** - Custom Jest matchers for DOM elements
+- **@testing-library/user-event (^14.6.1)** - User interaction simulation for testing
+- **@types/jest (^30.0.0)** - TypeScript definitions for Jest
+
 ### Which Dependencies Do You Need?
 
 #### ✅ Essential for This Project
@@ -179,12 +187,19 @@ The PostgreSQL schema includes:
 
 ## 🎨 Components Overview
 
+### Header
+Displays application header with:
+- Application title
+- Theme toggle button (light/dark mode)
+- WCAG AA-compliant color scheme
+
 ### TweetCard
 Displays individual tweets with:
 - User avatar and information
 - Tweet content and timestamp
 - Interactive like button
 - Clickable link to tweet details
+- Theme-aware styling using semantic color tokens
 
 ### TweetFeed
 Renders a list of tweets:
@@ -197,6 +212,7 @@ Interactive component for:
 - Like/unlike functionality
 - Real-time like count updates
 - User interaction feedback
+- Theme-aware styling
 
 ## 🔧 API Endpoints
 

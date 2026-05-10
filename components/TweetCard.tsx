@@ -6,7 +6,7 @@ import {TweetWithAuthor, TweetProps} from '@/app/lib/definitions';
 
 function CardContent({tweet}: { tweet: TweetWithAuthor }) {
     return (
-        <div className="flex gap-3 p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors">
+        <div className="flex gap-3 p-4 border-b border-border hover:bg-card transition-colors">
             <Image
                 src={tweet.avatar}
                 alt={tweet.username}
@@ -16,16 +16,16 @@ function CardContent({tweet}: { tweet: TweetWithAuthor }) {
                 }}
                 width={48}
                 height={48}
-                className="rounded-full shrink-0 border border-gray-100"
+                className="rounded-full shrink-0 border border-border"
                 unoptimized
             />
             <div className="flex flex-col gap-1 w-full">
                 <div className="flex items-center gap-2">
-                    <span className="font-semibold text-gray-900">{tweet.username}</span>
-                    <span className="text-sm text-gray-400">{tweet.handle}</span>
-                    <span className="text-sm text-gray-400 ml-auto">{tweet.timestamp}</span>
+                    <span className="font-semibold text-foreground">{tweet.username}</span>
+                    <span className="text-sm text-muted">{tweet.handle}</span>
+                    <span className="text-sm text-muted ml-auto">{tweet.timestamp}</span>
                 </div>
-                <p className="text-gray-800">{tweet.content}</p>
+                <p className="text-foreground">{tweet.content}</p>
 
             </div>
         </div>
