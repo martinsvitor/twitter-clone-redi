@@ -94,8 +94,9 @@ first-app/
 │   └── seed.ts           # Database seeding script
 ├── public/                # Static assets
 ├── script/                # Utility scripts
-│   └── add-user.ts       # User management script
-└── db.json               # Development data storage
+│   ├── add-user.ts       # User management script
+│   └── transform-db.ts   # Database transformation script
+└── db.json               # Development data storage (normalized structure)
 ```
 
 ## 🚀 Getting Started
@@ -145,7 +146,7 @@ This project uses a **dual database approach** to help you learn progressively:
 - **Purpose**: Practice data operations without database setup complexity
 - **Usage**: Currently used by all API endpoints
 - **Benefits**: Easy to understand, no external dependencies, perfect for learning basic CRUD operations
-- **Structure**: Simple JSON with posts array containing tweet data
+- **Structure**: Normalized JSON matching Prisma schema with separate users, tweets, likes, and dislikes arrays
 
 ### 2. PostgreSQL with Prisma (Ready for Future Use)
 - **Schema**: `prisma/schema.prisma` - comprehensive database design
@@ -200,28 +201,30 @@ Interactive component for:
 ## 🔧 API Endpoints
 
 ### GET `/api/tweets`
-Returns all tweets from the JSON database.
+Returns all tweets from the JSON database with joined user data and computed reaction counts.
 
 **Response:**
 ```json
 [
   {
     "id": 1,
-    "title": "His mother had always taught him",
-    "body": "His mother had always taught him not to ever think of himself as better than others...",
-    "tags": ["history", "american", "crime"],
+    "username": "alice121",
+    "handle": "@alice121",
+    "avatar": "https://i.pravatar.cc/48?u=...",
+    "content": "His mother had always taught him\n\nHis mother had always taught him not to ever think of himself as better than others...",
+    "timestamp": "2025-01-15T10:30:00.000Z",
     "reactions": {
       "likes": 192,
       "dislikes": 25
     },
     "views": 305,
-    "userId": 121
+    "userid": 121
   }
 ]
 ```
 
 ### GET `/api/tweets/[id]`
-Returns a specific tweet by its ID from the JSON database.
+Returns a specific tweet by its ID from the JSON database with joined user data and computed reaction counts.
 
 **Parameters:**
 - `id` (number): The tweet ID
@@ -230,15 +233,17 @@ Returns a specific tweet by its ID from the JSON database.
 ```json
 {
   "id": 1,
-  "title": "His mother had always taught him",
-  "body": "His mother had always taught him not to ever think of himself as better than others...",
-  "tags": ["history", "american", "crime"],
+  "username": "alice121",
+  "handle": "@alice121",
+  "avatar": "https://i.pravatar.cc/48?u=...",
+  "content": "His mother had always taught him\n\nHis mother had always taught him not to ever think of himself as better than others...",
+  "timestamp": "2025-01-15T10:30:00.000Z",
   "reactions": {
     "likes": 192,
     "dislikes": 25
   },
   "views": 305,
-  "userId": 121
+  "userid": 121
 }
 ```
 

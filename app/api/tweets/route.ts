@@ -1,25 +1,38 @@
 import fileSystem from 'node:fs/promises';
 import {NextResponse} from 'next/server';
 import path from 'path';
-import {Tweet, DbResponse, Database} from '@/app/lib/definitions';
+import {Database, TweetWithAuthor} from '@/app/lib/definitions';
 
 export async function GET() {
     const filePath = path.join(process.cwd(), 'db.json');
     const rawData = await fileSystem.readFile(filePath, {encoding: 'utf8'});
     const database: Database = JSON.parse(rawData);
-    const existingPostsId = new Set(database.posts.map(post => post.id))
 
-    if (database.posts.length > 0) {
-        return NextResponse.json(database.posts);
-    }
+    // Join user data with tweets and calculate reaction counts
+    const tweetsWithAuthor: TweetWithAuthor[] = database.tweets.map(tweet => {
+        const author = database.users.find(user => user.id === tweet.authorId);
+        if (!author) {
+            throw new Error(`Author not found for tweet ${tweet.id}`);
+        }
 
-    const response = await fetch('https://dummyjson.com/posts');
+        const likesCount = database.likes.filter(like => like.tweetId === tweet.id).length;
+        const dislikesCount = database.dislikes.filter(dislike => dislike.tweetId === tweet.id).length;
 
-    const body: DbResponse<Tweet[]> = await response.json();
-    const uniqueNewPosts = body.posts.filter(post => !existingPostsId.has(post.id));
+        return {
+            id: tweet.id,
+            username: author.username,
+            handle: author.handle,
+            avatar: author.avatar,
+            content: tweet.content,
+            timestamp: tweet.createdAt,
+            reactions: {
+                likes: likesCount,
+                dislikes: dislikesCount
+            },
+            views: tweet.views,
+            userid: tweet.authorId
+        };
+    });
 
-    database.posts.push(...uniqueNewPosts)
-    await fileSystem.writeFile(filePath, JSON.stringify(database, null, 2));
-
-    return NextResponse.json(database.posts);
+    return NextResponse.json(tweetsWithAuthor);
 }

@@ -2,14 +2,14 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
 import LikeButton from '@/components/LikeButton';
-import {Tweet, TweetProps} from '@/app/lib/definitions';
+import {TweetWithAuthor, TweetProps} from '@/app/lib/definitions';
 
-function CardContent({tweet}: { tweet: Tweet }) {
+function CardContent({tweet}: { tweet: TweetWithAuthor }) {
     return (
         <div className="flex gap-3 p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors">
             <Image
-                src={tweet.avatar || '/'}
-                alt={tweet.username || 'blank'}
+                src={tweet.avatar}
+                alt={tweet.username}
                 width={48}
                 height={48}
                 className="rounded-full shrink-0"
