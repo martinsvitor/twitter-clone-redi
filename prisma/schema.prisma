@@ -19,6 +19,7 @@ model User {
   avatar   String
   handle   String  @unique
   username String
+  password String
 
   tweets   Tweet[]
   likes    Like[]

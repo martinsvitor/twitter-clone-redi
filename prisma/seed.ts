@@ -43,6 +43,7 @@ async function main() {
                     username: faker.internet.displayName(),
                     handle: `@${faker.internet.username().toLowerCase()}`,
                     avatar: `https://i.pravatar.cc/48?u=${faker.string.uuid()}`,
+                    password: faker.internet.password({length: 10}),
                     email: faker.internet.email(),
                 },
             })
