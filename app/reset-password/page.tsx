@@ -10,19 +10,11 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [tokenValid, setTokenValid] = useState<boolean | null>(null);
   const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
 
   const token = searchParams.get('token');
-
-  useEffect(() => {
-    if (!token) {
-      setTokenValid(false);
-      setError('Invalid reset link');
-    } else {
-      setTokenValid(true);
-    }
-  }, [token]);
+  const tokenValid = !!token;
+  const initialError = !token ? 'Invalid reset link' : '';
 
   const validatePassword = (pwd: string): string[] => {
     const errors: string[] = [];
@@ -106,7 +98,7 @@ export default function ResetPasswordPage() {
               Invalid Reset Link
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              {error}
+              {initialError}
             </p>
             <div className="mt-6">
               <a
