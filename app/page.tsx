@@ -1,14 +1,9 @@
-'use client'
-import {SessionProvider} from 'next-auth/react';
 import TweetFeed from '@/components/TweetFeed';
 
-export default async function Home({Component, pageProps: {session, ...pageProps}}) {
+export default function Home() {
     return (
-        <SessionProvider session={session}>
-            <Component {...pageProps}/>
-            <div className="max-w-xl mx-auto">
-                <TweetFeed/>
-            </div>
-        </SessionProvider>
+        <div className="max-w-xl mx-auto">
+            <TweetFeed/>
+        </div>
     );
 }

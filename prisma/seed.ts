@@ -44,6 +44,8 @@ async function main() {
                     handle: `@${faker.internet.username().toLowerCase()}`,
                     avatar: `https://i.pravatar.cc/48?u=${faker.string.uuid()}`,
                     email: faker.internet.email(),
+                    name: faker.person.fullName(),
+                    emailVerified: faker.date.past(),
                 },
             })
         )

@@ -28,6 +28,14 @@ This project is designed to teach students:
 - **pg (8.20.0)** - PostgreSQL client library (required for database connectivity)
 - **dotenv (17.4.2)** - Environment variable management for configuration
 
+#### Authentication & Security
+- **next-auth (4.24.14)** - Complete authentication solution for Next.js
+- **@next-auth/prisma-adapter (1.0.7)** - Prisma adapter for NextAuth database-backed sessions
+- **bcrypt (6.0.0)** - Password hashing library for secure password storage
+- **zod (4.4.3)** - Schema validation library for runtime type checking
+- **resend (6.12.3)** - Email service for transactional emails (verification, password reset)
+- **rate-limiter-flexible** - Rate limiting library for API endpoint protection
+
 ### Development Dependencies (Development Only)
 
 #### TypeScript & Type Definitions
@@ -36,6 +44,7 @@ This project is designed to teach students:
 - **@types/react (^19)** - TypeScript definitions for React
 - **@types/react-dom (^19)** - TypeScript definitions for React DOM
 - **@types/pg (^8.20.0)** - TypeScript definitions for PostgreSQL client
+- **@types/bcrypt (^6.0.0)** - TypeScript definitions for bcrypt
 
 #### Styling & CSS
 - **tailwindcss (^4)** - Utility-first CSS framework for rapid UI development
@@ -86,8 +95,23 @@ This project is designed to teach students:
 first-app/
 ├── app/                    # Next.js App Router
 │   ├── api/               # API routes
+│   │   ├── auth/          # Authentication endpoints
+│   │   │   ├── [...nextauth]/  # NextAuth configuration
+│   │   │   ├── register/       # User registration
+│   │   │   ├── verify-email/   # Email verification
+│   │   │   └── reset-password/ # Password reset
+│   │   ├── user/          # User management endpoints
+│   │   │   ├── profile/        # Profile CRUD
+│   │   │   └── password/       # Password change
 │   │   └── tweets/        # Tweet-related endpoints
 │   ├── lib/               # Shared utilities and types
+│   ├── auth/              # Authentication pages
+│   │   ├── login/         # Login page
+│   │   ├── register/      # Registration page
+│   │   ├── verify-email/  # Email verification page
+│   │   ├── forgot-password/ # Password reset request
+│   │   └── reset-password/ # Password reset completion
+│   ├── profile/           # User profile settings
 │   ├── tweet/             # Tweet detail pages
 │   ├── globals.css        # Global styles
 │   ├── layout.tsx         # Root layout
@@ -96,6 +120,12 @@ first-app/
 │   ├── TweetCard.tsx      # Individual tweet component
 │   ├── TweetFeed.tsx      # Tweet list component
 │   └── LikeButton.tsx     # Interactive like button
+├── lib/                   # Shared utilities
+│   ├── auth/              # Authentication utilities
+│   │   └── password.ts    # Password hashing/validation
+│   ├── email/             # Email service
+│   │   └── service.ts     # Resend email service
+│   └── rate-limit.ts      # Rate limiting utilities
 ├── prisma/                # Database configuration
 │   ├── schema.prisma      # Database schema
 │   ├── migrations/        # Database migrations
@@ -104,6 +134,7 @@ first-app/
 ├── script/                # Utility scripts
 │   ├── add-user.ts       # User management script
 │   └── transform-db.ts   # Database transformation script
+├── proxy.ts               # Route protection proxy (replaces deprecated middleware)
 └── db.json               # Development data storage (normalized structure)
 ```
 
@@ -171,14 +202,19 @@ You can start with the JSON file to understand basic concepts, then gradually mi
 The PostgreSQL schema includes:
 
 ### Core Models
-- **User**: User profiles with authentication data
+- **User**: User profiles with authentication data (password, emailVerified)
+- **Account**: OAuth provider accounts (Google, etc.)
+- **Session**: Database-backed user sessions
+- **VerificationToken**: Email verification and password reset tokens
 - **Tweet**: Posts with content, timestamps, and engagement metrics
 - **Like/Dislike**: User reactions to tweets
 - **Retweet**: Tweet sharing functionality
 - **Follow**: User following relationships
 
 ### Key Features
-- User authentication and profiles
+- User authentication (email/password and OAuth)
+- Email verification and password reset
+- Database-backed sessions
 - Tweet creation and display
 - Like/dislike functionality
 - Retweet capability
@@ -216,7 +252,60 @@ Interactive component for:
 
 ## 🔧 API Endpoints
 
-### GET `/api/tweets`
+### Authentication Endpoints
+
+#### POST `/api/auth/register`
+Registers a new user with email/password authentication.
+- Validates input (email, password, name, username)
+- Validates password strength
+- Checks for existing email/username
+- Hashes password using bcrypt
+- Sends verification email
+- Rate limited: 3 requests per hour per IP
+
+#### POST `/api/auth/verify-email`
+Verifies user email using token from verification email.
+- Validates token presence and expiration
+- Updates user's emailVerified timestamp
+- Deletes verification token
+
+#### POST `/api/auth/reset-password/request`
+Requests a password reset for a user.
+- Validates email presence
+- Generates reset token (1-hour expiry)
+- Sends password reset email
+- Always returns success (prevents email enumeration)
+- Rate limited: 3 requests per hour per IP
+
+#### POST `/api/auth/reset-password`
+Completes password reset using token.
+- Validates token and new password
+- Hashes new password
+- Updates user password
+- Deletes verification token
+
+#### GET `/api/user/profile`
+Fetches authenticated user's profile data.
+- Requires authentication
+- Returns user profile (id, email, name, username, avatar, handle)
+
+#### PATCH `/api/user/profile`
+Updates authenticated user's profile.
+- Requires authentication
+- Accepts name, username, avatar updates
+- Checks username uniqueness
+- Updates handle when username changes
+
+#### POST `/api/user/password`
+Changes authenticated user's password.
+- Requires authentication
+- Validates current password and new password
+- Hashes new password
+- Updates user password
+
+### Tweet Endpoints
+
+#### GET `/api/tweets`
 Returns all tweets from the JSON database with joined user data and computed reaction counts.
 
 **Response:**
@@ -285,10 +374,14 @@ Returns a specific tweet by its ID from the JSON database with joined user data 
 4. **State Management**: Component state vs. server state
 
 ### Advanced Topics
-1. **Authentication**: User login, sessions, and authorization
-2. **Real-time Features**: WebSockets, live updates
-3. **Performance Optimization**: Caching, lazy loading, and code splitting
-4. **Deployment**: Production setup and best practices
+1. **Authentication**: User login, sessions, and authorization ✅ (Implemented)
+2. **Email Verification**: Token-based email verification ✅ (Implemented)
+3. **Password Reset**: Secure password reset flow ✅ (Implemented)
+4. **OAuth Integration**: Google OAuth provider ✅ (Implemented)
+5. **Rate Limiting**: API endpoint protection ✅ (Implemented)
+6. **Real-time Features**: WebSockets, live updates
+7. **Performance Optimization**: Caching, lazy loading, and code splitting
+8. **Deployment**: Production setup and best practices
 
 ## 🛠️ Available Scripts
 
@@ -299,14 +392,15 @@ Returns a specific tweet by its ID from the JSON database with joined user data 
 
 ## 🎯 Next Steps for Students
 
-1. **Add User Authentication**: Implement login/logout functionality
-2. **Create Tweet Form**: Allow users to post new tweets
-3. **User Profiles**: Create individual user pages
-4. **Real-time Updates**: Implement live tweet updates
-5. **Search Functionality**: Add tweet and user search
-6. **Mobile Responsiveness**: Optimize for mobile devices
-7. **Testing**: Add unit and integration tests
-8. **Deployment**: Deploy to production
+1. **Create Tweet Form**: Allow users to post new tweets
+2. **User Profiles**: Create individual user pages
+3. **Real-time Updates**: Implement live tweet updates
+4. **Search Functionality**: Add tweet and user search
+5. **Mobile Responsiveness**: Optimize for mobile devices
+6. **Testing**: Add unit and integration tests
+7. **Deployment**: Deploy to production
+8. **Session Cleanup**: Implement cron job for expired session cleanup
+9. **Account Cleanup**: Implement cron job for unverified user cleanup
 
 ## 🤝 Contributing
 
