@@ -1,11 +1,11 @@
 import React from 'react';
 import {TweetWithAuthor} from '@/app/lib/definitions';
 import TweetCard from '@/components/TweetCard';
+import {getTweetsWithAuthor} from '@/app/lib/data';
 
 
 export default async function TweetFeed() {
-    const response = await fetch('http://localhost:3000/api/tweets');
-    const tweets: TweetWithAuthor[] = await response.json();
+    const tweets: TweetWithAuthor[] = await getTweetsWithAuthor();
     return (
         <section>
             {tweets.map((tweet) => (

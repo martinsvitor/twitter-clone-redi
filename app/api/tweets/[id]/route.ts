@@ -36,7 +36,7 @@ export async function GET(_: NextRequest, {params}: {
         handle: author.handle,
         avatar: author.avatar,
         content: tweet.content,
-        timestamp: tweet.createdAt,
+        timestamp: String(tweet.createdAt),
         reactions: {
             likes: likesCount,
             dislikes: dislikesCount
