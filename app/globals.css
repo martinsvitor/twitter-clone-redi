@@ -1,30 +1,68 @@
 @import "tailwindcss";
 
 :root {
+  --font-geist-sans: 'Geist', sans-serif;
+  --font-geist-mono: 'Geist Mono', monospace;
   --background: #F9FAFB;
   --foreground: #09090b;
   --muted: #737373;
+  --muted-foreground: #a3a3a3;
   --accent: #2563eb;
   --border: #e5e5e5;
   --card: #ffffff;
+  --input: #e5e5e5;
+  --sky-500: #0ea5e9;
+  --sky-400: #38bdf8;
+  --red-400: #f87171;
+  --red-500: #ef4444;
+  --zinc-400: #a3a3a3;
+  --zinc-500: #737373;
+  --zinc-600: #525252;
+  --zinc-800: #27272a;
+  --zinc-900: #18181b;
+  --zinc-300: #d4d4d8;
 }
 
 .dark {
   --background: #09090b;
   --foreground: #fafafa;
   --muted: #a3a3a3;
+  --muted-foreground: #71717a;
   --accent: #3b82f6;
   --border: #27272a;
   --card: #18181b;
+  --input: #27272a;
+  --sky-500: #0ea5e9;
+  --sky-400: #38bdf8;
+  --red-400: #f87171;
+  --red-500: #ef4444;
+  --zinc-400: #a3a3a3;
+  --zinc-500: #737373;
+  --zinc-600: #525252;
+  --zinc-800: #27272a;
+  --zinc-900: #18181b;
+  --zinc-300: #d4d4d8;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-border: var(--border);
   --color-card: var(--card);
+  --color-input: var(--input);
+  --color-sky-500: var(--sky-500);
+  --color-sky-400: var(--sky-400);
+  --color-red-400: var(--red-400);
+  --color-red-500: var(--red-500);
+  --color-zinc-400: var(--zinc-400);
+  --color-zinc-500: var(--zinc-500);
+  --color-zinc-600: var(--zinc-600);
+  --color-zinc-800: var(--zinc-800);
+  --color-zinc-900: var(--zinc-900);
+  --color-zinc-300: var(--zinc-300);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -33,5 +71,11 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
-  transition: background-color 300ms ease-in-out, color 300ms ease-in-out;
+  transition: background-color 300ms ease-in-out, color 300ms ease-in-out, border-color 300ms ease-in-out;
+}
+
+* {
+  transition-property: background-color, color, border-color, background;
+  transition-duration: 500ms;
+  transition-timing-function: ease-in-out;
 }

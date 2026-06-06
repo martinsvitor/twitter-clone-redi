@@ -1,134 +1,226 @@
 // prisma/seed.ts
-import {prisma} from '@/app/lib/prisma'
-import {faker} from "@faker-js/faker";
+import { prisma } from '@/app/lib/prisma';
+import fs from 'fs';
+import path from 'path';
 
-const TWEET_CONTENTS = [
-    "Just deployed my first Next.js app with App Router. Server Components are a game changer.",
-    "Hot take: TypeScript errors are just the compiler trying to help you. Stop fighting it.",
-    "Three hours debugging. The bug was a missing semicolon. I'm going for a walk.",
-    "Finally understood the difference between useEffect and Server Components. Mind blown.",
-    "PSA: Tailwind CSS is not 'just inline styles'. Fight me.",
-    "The best part of pair programming is having someone to blame.",
-    "npm install is my meditation practice. I just sit and wait.",
-    "Learned more from one broken deployment than six months of tutorials.",
-    "Dynamic routing in Next.js is genuinely elegant. params just works.",
-    "Reminder that 'it works on my machine' is not a deployment strategy.",
-    "Just refactored 200 lines into 40. Feels illegal.",
-    "Why write comments when you can write clean code? (I write neither)",
-    "Git commit message: 'fix'. Three hours later: 'actually fix'.",
-    "async/await is beautiful until you forget to await something.",
-    "Finished my portfolio. Now I just need projects to put in it.",
-    "The difference between junior and senior is knowing which Stack Overflow answer to trust.",
-    "Just discovered Prettier. Where has this been my whole life.",
-    "REST API returning 200 with an error message inside. Classic.",
-    "React state management be like: we have the data at home.",
-    "Wrote a component so reusable I'm putting it on my CV.",
-];
+// Types matching the transformed db.json structure
+interface User {
+  email: string;
+  name: string | null;
+  avatar: string;
+  handle: string;
+  username: string;
+  password?: string;
+}
+
+interface Tweet {
+  content: string;
+  views: number;
+  createdAt: string;
+  authorEmail: string;
+}
+
+interface Like {
+  userEmail: string;
+  tweetContent: string;
+}
+
+interface Retweet {
+  userEmail: string;
+  tweetContent: string;
+}
+
+interface Follow {
+  followerEmail: string;
+  followingEmail: string;
+}
+
+interface Account {
+  userId: string;
+  type: string;
+  provider: string;
+  providerAccountId: string;
+  refresh_token?: string;
+  access_token?: string;
+  expires_at?: number;
+  token_type?: string;
+  scope?: string;
+  id_token?: string;
+  session_state?: string;
+}
+
+interface Session {
+  sessionToken: string;
+  userId: string;
+  expires: string;
+}
+
+interface VerificationToken {
+  identifier: string;
+  token: string;
+  expires: string;
+}
+
+interface Authenticator {
+  credentialID: string;
+  userId: string;
+  providerAccountId: string;
+  credentialPublicKey: string;
+  counter: number;
+  credentialDeviceType: string;
+  credentialBackedUp: boolean;
+  transports?: string;
+}
+
+interface Database {
+  users: User[];
+  tweets: Tweet[];
+  likes: Like[];
+  retweets: Retweet[];
+  follows: Follow[];
+  accounts: Account[];
+  sessions: Session[];
+  verificationTokens: VerificationToken[];
+  authenticators: Authenticator[];
+}
 
 async function main() {
-    console.log("🌱 Seeding database...");
+  console.log("🌱 Seeding database...");
 
-    // Clean existing data in dependency order (children before parents)
-    await prisma.like.deleteMany();
-    await prisma.retweet.deleteMany();
-    await prisma.follow.deleteMany();
-    await prisma.tweet.deleteMany();
-    await prisma.user.deleteMany();
+  // Read transformed data from db.new.json
+  const dbPath = path.join(process.cwd(), 'db.new.json');
+  const rawData = fs.readFileSync(dbPath, 'utf-8');
+  const db: Database = JSON.parse(rawData);
 
-    // --- Users ---
-    const users = await Promise.all(
-        Array.from({length: 6}, () =>
-            prisma.user.create({
-                data: {
-                    username: faker.internet.displayName(),
-                    handle: `@${faker.internet.username().toLowerCase()}`,
-                    avatar: `https://i.pravatar.cc/48?u=${faker.string.uuid()}`,
-                    email: faker.internet.email(),
-                },
-            })
-        )
-    );
-    console.log(`✅ Created ${users.length} users`);
+  // Clean existing data in dependency order (children before parents)
+  await prisma.like.deleteMany();
+  await prisma.retweet.deleteMany();
+  await prisma.follow.deleteMany();
+  await prisma.tweet.deleteMany();
+  await prisma.account.deleteMany();
+  await prisma.session.deleteMany();
+  await prisma.verificationToken.deleteMany();
+  await prisma.authenticator.deleteMany();
+  await prisma.user.deleteMany();
 
-    // --- Tweets ---
-    const tweets = await Promise.all(
-        TWEET_CONTENTS.map((content, i) =>
-            prisma.tweet.create({
-                data: {
-                    content,
-                    views: faker.number.int({min: 100, max: 10000}),
-                    createdAt: faker.date.recent({days: 7}),
-                    authorId: users[i % users.length].id, // distribute tweets across users
-                },
-            })
-        )
-    );
-    console.log(`✅ Created ${tweets.length} tweets`);
+  // --- Users ---
+  const users = await Promise.all(
+    db.users.map((user) =>
+      prisma.user.create({
+        data: {
+          email: user.email,
+          name: user.name,
+          avatar: user.avatar,
+          handle: user.handle,
+          username: user.username,
+          password: user.password,
+        },
+      })
+    )
+  );
+  console.log(`✅ Created ${users.length} users`);
 
-    // --- Likes ---
-    // Each user likes a random subset of tweets
-    const likeEntries: { userId: number; tweetId: number }[] = [];
+  // Create email → userId mapping
+  const emailToUserId = new Map<string, string>();
+  users.forEach((user) => {
+    emailToUserId.set(user.email, user.id);
+  });
 
-    for (const user of users) {
-        const tweetSubset = faker.helpers.arrayElements(
-            tweets,
-            faker.number.int({min: 2, max: 8})
-        );
-        for (const tweet of tweetSubset) {
-            // Avoid users liking their own tweets, like a real platform
-            if (tweet.authorId !== user.id) {
-                likeEntries.push({userId: user.id, tweetId: tweet.id});
-            }
-        }
+  // --- Tweets ---
+  const tweets = await Promise.all(
+    db.tweets.map((tweet) =>
+      prisma.tweet.create({
+        data: {
+          content: tweet.content,
+          views: tweet.views,
+          createdAt: new Date(tweet.createdAt),
+          authorId: emailToUserId.get(tweet.authorEmail)!,
+        },
+      })
+    )
+  );
+  console.log(`✅ Created ${tweets.length} tweets`);
+
+  // Create content → tweetId mapping
+  const contentToTweetId = new Map<string, string>();
+  tweets.forEach((tweet) => {
+    contentToTweetId.set(tweet.content, tweet.id);
+  });
+
+  // --- Likes ---
+  const likeEntries: { userId: string; tweetId: string }[] = [];
+  for (const like of db.likes) {
+    const userId = emailToUserId.get(like.userEmail);
+    const tweetId = contentToTweetId.get(like.tweetContent);
+    if (userId && tweetId) {
+      likeEntries.push({ userId, tweetId });
     }
+  }
+  if (likeEntries.length > 0) {
+    await prisma.like.createMany({ data: likeEntries, skipDuplicates: true });
+  }
+  console.log(`✅ Created ${likeEntries.length} likes`);
 
-    await prisma.like.createMany({data: likeEntries, skipDuplicates: true});
-    console.log(`✅ Created ${likeEntries.length} likes`);
-
-    // --- Retweets ---
-    const retweetEntries: { userId: number; tweetId: number }[] = [];
-
-    for (const user of users) {
-        const tweetSubset = faker.helpers.arrayElements(
-            tweets,
-            faker.number.int({min: 1, max: 4})
-        );
-        for (const tweet of tweetSubset) {
-            if (tweet.authorId !== user.id) {
-                retweetEntries.push({userId: user.id, tweetId: tweet.id});
-            }
-        }
+  // --- Retweets ---
+  const retweetEntries: { userId: string; tweetId: string }[] = [];
+  for (const retweet of db.retweets) {
+    const userId = emailToUserId.get(retweet.userEmail);
+    const tweetId = contentToTweetId.get(retweet.tweetContent);
+    if (userId && tweetId) {
+      retweetEntries.push({ userId, tweetId });
     }
+  }
+  if (retweetEntries.length > 0) {
+    await prisma.retweet.createMany({ data: retweetEntries, skipDuplicates: true });
+  }
+  console.log(`✅ Created ${retweetEntries.length} retweets`);
 
-    await prisma.retweet.createMany({data: retweetEntries, skipDuplicates: true});
-    console.log(`✅ Created ${retweetEntries.length} retweets`);
-
-    // --- Follows ---
-    // Each user follows a random subset of other users
-    const followEntries: { followerId: number; followingId: number }[] = [];
-
-    for (const user of users) {
-        const otherUsers = users.filter((u) => u.id !== user.id);
-        const toFollow = faker.helpers.arrayElements(
-            otherUsers,
-            faker.number.int({min: 1, max: otherUsers.length})
-        );
-        for (const target of toFollow) {
-            followEntries.push({followerId: user.id, followingId: target.id});
-        }
+  // --- Follows ---
+  const followEntries: { followerId: string; followingId: string }[] = [];
+  for (const follow of db.follows) {
+    const followerId = emailToUserId.get(follow.followerEmail);
+    const followingId = emailToUserId.get(follow.followingEmail);
+    if (followerId && followingId) {
+      followEntries.push({ followerId, followingId });
     }
+  }
+  if (followEntries.length > 0) {
+    await prisma.follow.createMany({ data: followEntries, skipDuplicates: true });
+  }
+  console.log(`✅ Created ${followEntries.length} follow relationships`);
 
-    await prisma.follow.createMany({data: followEntries, skipDuplicates: true});
-    console.log(`✅ Created ${followEntries.length} follow relationships`);
+  // --- Accounts ---
+  if (db.accounts.length > 0) {
+    await prisma.account.createMany({ data: db.accounts, skipDuplicates: true });
+    console.log(`✅ Created ${db.accounts.length} accounts`);
+  }
 
-    console.log("🎉 Done!");
+  // --- Sessions ---
+  if (db.sessions.length > 0) {
+    await prisma.session.createMany({ data: db.sessions, skipDuplicates: true });
+    console.log(`✅ Created ${db.sessions.length} sessions`);
+  }
+
+  // --- Verification Tokens ---
+  if (db.verificationTokens.length > 0) {
+    await prisma.verificationToken.createMany({ data: db.verificationTokens, skipDuplicates: true });
+    console.log(`✅ Created ${db.verificationTokens.length} verification tokens`);
+  }
+
+  // --- Authenticators ---
+  if (db.authenticators.length > 0) {
+    await prisma.authenticator.createMany({ data: db.authenticators, skipDuplicates: true });
+    console.log(`✅ Created ${db.authenticators.length} authenticators`);
+  }
+
+  console.log("🎉 Done!");
 }
 
 main()
-    .catch((e) => {
-        console.error(e);
-        process.exit(1);
-    })
-    .finally(async () => {
-        await prisma.$disconnect();
-    });
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
