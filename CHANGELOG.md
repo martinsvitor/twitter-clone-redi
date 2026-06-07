@@ -2,6 +2,71 @@
 
 All notable changes to this project will be documented in this file, organized by feature/branch.
 
+## [User Profiles & Protected Routes]
+
+### Added
+- User profile page (`app/(protected)/users/[id]/profile/page.tsx`) with protected route middleware
+- Profile page client component with handle editing functionality
+- User search endpoint (`GET /api/search`) for finding users by handle, name, or username
+- Custom error classes (`app/lib/errors.ts`) for ConflictError, NotFoundError, and InternalError
+- Protected route middleware (`proxy.ts`) using NextAuth.js auth function
+- Database query functions: `getUser`, `searchUsers`, and `updateHandle` in `app/lib/queries.ts`
+- User avatar display in Navbar with fallback to initials
+- Profile statistics display (tweets, followers, following counts)
+- Handle editing with validation and conflict detection
+- Account details section for profile owners (email, user ID)
+
+### Changed
+- Enhanced NextAuth.js configuration with custom adapter for user creation
+- Added JWT callbacks to include user ID in session token
+- Updated Prisma schema: fixed typo (refres_token → refresh_token), added emailVerified field, added unique constraint on Account model
+- Simplified avatar generation to use DiceBear API instead of local generation
+- Refactored Navbar component into smaller sub-components (NavLogo, ThemeToggle, AuthSection, UserAvatar, UserMenu)
+- Updated profile link in Navbar to use user ID instead of handle
+- Enhanced error handling in database queries with custom error types
+
+### Removed
+- Old search endpoint (`app/api/auth/search/route.ts`) - replaced with unified `/api/search`
+- Old profile endpoint (`app/api/auth/users/[id]/profile/route.ts`) - replaced with server component approach
+
+## [User Authentication & OAuth Integration]
+
+### Added
+- NextAuth.js authentication system with OAuth providers (Google and GitHub)
+- User registration endpoint (`POST /api/auth/register`) for email/password signup
+- Authentication page (`app/auth/page.tsx`) with sign-in/sign-up functionality
+- Navigation bar component (`components/Navbar.tsx`) replacing Header component
+- Sign-in and sign-out buttons with session management
+- Authentication form components (AuthForm, AuthTabs, OAuthButtons)
+- Custom OAuth icons (GitHubIcon, GoogleIcon)
+- Authentication form hook (`hooks/use-auth-form.ts`) for form state management
+- NextAuth configuration (`auth.ts`) with session and JWT strategy
+- Database queries module (`app/lib/queries.ts`) for Prisma operations
+- Utility functions module (`app/lib/utils.ts`) for common helpers
+- Twitter-like bird logo (`public/bird-logo.svg`)
+- Prisma migrations for user authentication models (Account, Session, User)
+- Refresh token expiration support in database schema
+- Updated seed script with user authentication data
+
+### Changed
+- Replaced Header component with Navbar component (removed Header.tsx and tests)
+- Updated Prisma schema to include authentication models (User, Account, Session)
+- Enhanced database transformation script to handle authentication data
+- Updated global styles for authentication UI components
+- Modified layout.tsx to support authentication session provider
+- Updated API routes to integrate with authentication system
+- Enhanced package.json with NextAuth.js and related dependencies
+- Updated .gitignore for better file exclusion
+
+### Removed
+- Old Header component and its tests (Header.tsx, Header.test.tsx)
+- Database-specific API endpoints (/api/tweets-db/*) - consolidated into main tweet endpoints
+- Old data.ts file (replaced by queries.ts and utils.ts)
+
+### Fixed
+- Database schema alignment with NextAuth.js requirements
+- Session management and token expiration handling
+
 ## [Accessible Theme System]
 
 ### Added

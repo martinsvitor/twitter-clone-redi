@@ -4,12 +4,31 @@ import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
 import {PrismaAdapter} from '@auth/prisma-adapter';
 import {prisma} from '@/app/lib/prisma';
+import {AdapterUser} from '@auth/core/adapters';
 import bcrypt from 'bcryptjs';
+import {generateAvatar, generateHandle} from '@/app/lib/utils';
 
 type CredentialsRecord = Partial<Record<"email" | "password", unknown>>
 
+const adapter = {
+    ...PrismaAdapter(prisma),
+    createUser: async (data: Omit<AdapterUser, "id">): Promise<AdapterUser> => {
+        const {image, ...rest} = data;
+        const handle = generateHandle(data.email);
+        return prisma.user.create({
+            data: {
+                ...rest,
+                handle,
+                username: data.name ?? data.email.split("@")[0].toLowerCase(),
+                avatar: image ?? generateAvatar(handle),
+                emailVerified: data.emailVerified ?? null
+            }
+        });
+    }
+}
+
 export const {handlers, signIn, signOut, auth} = NextAuth({
-    adapter: PrismaAdapter(prisma),
+    adapter,
     session: {strategy: "jwt"},
     providers: [
         Google,
@@ -41,4 +60,16 @@ export const {handlers, signIn, signOut, auth} = NextAuth({
             }
         })
     ],
+    callbacks: {
+        jwt({token, user}) {
+            if (user) {
+                token.id = user.id;
+            }
+            return token;
+        },
+        session({session, token}) {
+            session.user.id = token.id as string;
+            return session;
+        }
+    }
 })

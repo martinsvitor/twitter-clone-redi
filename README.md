@@ -8,6 +8,7 @@ This project is designed to teach students:
 
 - **Frontend Development**: React components, TypeScript, modern CSS with Tailwind
 - **Backend Development**: API routes, database integration with Prisma
+- **Authentication & Authorization**: NextAuth.js with OAuth providers
 - **Full-Stack Architecture**: How frontend and backend work together
 - **Database Design**: Schema design, relationships, and migrations
 - **Modern Development Practices**: Component-based architecture, type safety, responsive design
@@ -27,6 +28,7 @@ This project is designed to teach students:
 - **@prisma/adapter-pg (7.8.0)** - PostgreSQL adapter for Prisma (needed for actual database connection)
 - **pg (8.20.0)** - PostgreSQL client library (required for database connectivity)
 - **dotenv (17.4.2)** - Environment variable management for configuration
+- **next-auth (^5)** - Authentication solution for Next.js with OAuth support
 
 ### Development Dependencies (Development Only)
 
@@ -65,6 +67,7 @@ This project is designed to teach students:
 - **typescript** - Type safety (highly recommended for learning)
 - **tailwindcss** - Styling (can be replaced with other CSS solutions)
 - **lucide-react** - Icons (can be replaced with other icon libraries)
+- **next-auth** - Authentication (can be replaced with other auth solutions)
 
 #### 🔄 Database Dependencies (Choose Your Approach)
 - **For JSON File Approach Only**: Can remove `@prisma/client`, `@prisma/adapter-pg`, `pg`, `prisma`
@@ -85,17 +88,28 @@ This project is designed to teach students:
 ```
 first-app/
 ├── app/                    # Next.js App Router
+│   ├── (protected)/       # Protected routes with authentication middleware
+│   │   └── users/         # User profile pages
 │   ├── api/               # API routes
+│   │   ├── auth/          # Authentication endpoints
+│   │   ├── search/        # User search endpoint
 │   │   └── tweets/        # Tweet-related endpoints
+│   ├── auth/              # Authentication pages
 │   ├── lib/               # Shared utilities and types
 │   ├── tweet/             # Tweet detail pages
 │   ├── globals.css        # Global styles
 │   ├── layout.tsx         # Root layout
 │   └── page.tsx           # Home page
 ├── components/            # Reusable React components
+│   ├── auth/              # Authentication components
+│   ├── icons/             # Custom icons
+│   ├── Navbar.tsx         # Navigation bar
 │   ├── TweetCard.tsx      # Individual tweet component
 │   ├── TweetFeed.tsx      # Tweet list component
 │   └── LikeButton.tsx     # Interactive like button
+├── hooks/                 # Custom React hooks
+│   ├── use-auth-form.ts   # Authentication form hook
+│   └── use-theme.ts       # Theme management hook
 ├── prisma/                # Database configuration
 │   ├── schema.prisma      # Database schema
 │   ├── migrations/        # Database migrations
@@ -104,6 +118,8 @@ first-app/
 ├── script/                # Utility scripts
 │   ├── add-user.ts       # User management script
 │   └── transform-db.ts   # Database transformation script
+├── auth.ts                # NextAuth configuration
+├── proxy.ts               # Protected route middleware
 └── db.json               # Development data storage (normalized structure)
 ```
 
@@ -123,8 +139,17 @@ npm install
 2. **Set up environment variables:**
 ```bash
 cp .env.example .env
-# Edit .env with your database configuration
+# Edit .env with your database configuration and OAuth credentials
 ```
+
+Required environment variables:
+- `DATABASE_URL` - PostgreSQL connection string
+- `NEXTAUTH_SECRET` - Secret key for NextAuth.js
+- `NEXTAUTH_URL` - Your application URL
+- `GOOGLE_CLIENT_ID` - Google OAuth client ID
+- `GOOGLE_CLIENT_SECRET` - Google OAuth client secret
+- `GITHUB_CLIENT_ID` - GitHub OAuth client ID
+- `GITHUB_CLIENT_SECRET` - GitHub OAuth client secret
 
 3. **Set up the database:**
 ```bash
@@ -171,14 +196,19 @@ You can start with the JSON file to understand basic concepts, then gradually mi
 The PostgreSQL schema includes:
 
 ### Core Models
-- **User**: User profiles with authentication data
+- **User**: User profiles with authentication data (email, name, image)
+- **Account**: OAuth provider accounts (Google, GitHub)
+- **Session**: User session management with refresh tokens
 - **Tweet**: Posts with content, timestamps, and engagement metrics
 - **Like/Dislike**: User reactions to tweets
 - **Retweet**: Tweet sharing functionality
 - **Follow**: User following relationships
 
 ### Key Features
-- User authentication and profiles
+- User authentication with OAuth (Google, GitHub)
+- Email/password registration and sign-in
+- Session management with JWT tokens
+- User profiles with authentication data
 - Tweet creation and display
 - Like/dislike functionality
 - Retweet capability
@@ -187,10 +217,12 @@ The PostgreSQL schema includes:
 
 ## 🎨 Components Overview
 
-### Header
-Displays application header with:
-- Application title
+### Navbar
+Navigation bar component with:
+- Application branding with bird logo
+- Sign-in/sign-out buttons based on authentication state
 - Theme toggle button (light/dark mode)
+- Responsive design with mobile support
 - WCAG AA-compliant color scheme
 
 ### TweetCard
@@ -214,7 +246,70 @@ Interactive component for:
 - User interaction feedback
 - Theme-aware styling
 
+### Authentication Components
+- **AuthForm**: Email/password sign-in and sign-up form with validation
+- **AuthTabs**: Tab switching between sign-in and sign-up modes
+- **OAuthButtons**: Google and GitHub OAuth sign-in buttons
+- **SignInButton**: Sign-in button with session state integration
+- **SignoutButton**: Sign-out button with session cleanup
+
+### Profile Components
+- **ProfilePage**: User profile page with handle editing, statistics, and account details
+- **UserAvatar**: Avatar display with fallback to initials
+- **UserMenu**: Dropdown menu for profile navigation and sign-out
+
 ## 🔧 API Endpoints
+
+### Authentication Endpoints
+
+### POST `/api/auth/register`
+Registers a new user with email and password.
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com",
+  "password": "securepassword",
+  "name": "John Doe"
+}
+```
+
+**Response:**
+```json
+{
+  "user": {
+    "id": "user_id",
+    "email": "user@example.com",
+    "name": "John Doe"
+  }
+}
+```
+
+### GET `/api/auth/[...nextauth]`
+NextAuth.js handler for authentication flows (OAuth sign-in, sign-out, session management).
+
+### GET `/api/search`
+Search for users by handle, name, or username.
+
+**Parameters:**
+- `q` (string): Search query
+
+**Response:**
+```json
+{
+  "users": [
+    {
+      "id": "user_id",
+      "name": "John Doe",
+      "username": "johndoe",
+      "handle": "@johndoe",
+      "avatar": "https://api.dicebear.com/9.x/adventurer/svg?seed=johndoe"
+    }
+  ]
+}
+```
+
+### Tweet Endpoints
 
 ### GET `/api/tweets`
 Returns all tweets from the JSON database with joined user data and computed reaction counts.
@@ -285,10 +380,14 @@ Returns a specific tweet by its ID from the JSON database with joined user data 
 4. **State Management**: Component state vs. server state
 
 ### Advanced Topics
-1. **Authentication**: User login, sessions, and authorization
-2. **Real-time Features**: WebSockets, live updates
-3. **Performance Optimization**: Caching, lazy loading, and code splitting
-4. **Deployment**: Production setup and best practices
+1. **Authentication**: User login, sessions, and authorization (✅ Completed with NextAuth.js)
+2. **OAuth Integration**: Third-party authentication providers (✅ Completed with Google/GitHub)
+3. **Protected Routes**: Route-level authentication with middleware (✅ Completed)
+4. **User Profiles**: Profile pages with editing functionality (✅ Completed)
+5. **User Search**: Search functionality for finding users (✅ Completed)
+6. **Real-time Features**: WebSockets, live updates
+7. **Performance Optimization**: Caching, lazy loading, and code splitting
+8. **Deployment**: Production setup and best practices
 
 ## 🛠️ Available Scripts
 
@@ -299,14 +398,11 @@ Returns a specific tweet by its ID from the JSON database with joined user data 
 
 ## 🎯 Next Steps for Students
 
-1. **Add User Authentication**: Implement login/logout functionality
-2. **Create Tweet Form**: Allow users to post new tweets
-3. **User Profiles**: Create individual user pages
-4. **Real-time Updates**: Implement live tweet updates
-5. **Search Functionality**: Add tweet and user search
-6. **Mobile Responsiveness**: Optimize for mobile devices
-7. **Testing**: Add unit and integration tests
-8. **Deployment**: Deploy to production
+1. **Create Tweet Form**: Allow users to post new tweets
+2. **Real-time Updates**: Implement live tweet updates
+3. **Mobile Responsiveness**: Optimize for mobile devices
+4. **Testing**: Add unit and integration tests
+5. **Deployment**: Deploy to production
 
 ## 🤝 Contributing
 
