@@ -1,5 +1,5 @@
 // prisma/seed.ts
-import { prisma } from '@/app/lib/prisma';
+import { prisma } from '@/app/lib/db/prisma';
 import fs from 'fs';
 import path from 'path';
 
