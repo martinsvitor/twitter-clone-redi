@@ -29,7 +29,14 @@ const adapter = {
 
 export const {handlers, signIn, signOut, auth} = NextAuth({
     adapter,
-    session: {strategy: "jwt"},
+    session: {
+        strategy: "jwt",
+        // maxAge: 30 * 24 * 60 * 60, // 30 days
+        // updateAge: 24 * 60 * 60 // 24 hours
+    },
+    // jwt: {
+    // maxAge: 30 * 24 * 60 * 60, // 30 days
+    // },
     providers: [
         Google,
         GitHub,
@@ -62,13 +69,13 @@ export const {handlers, signIn, signOut, auth} = NextAuth({
     ],
     callbacks: {
         jwt({token, user}) {
-            if (user) {
+            if (user && user.id) {
                 token.id = user.id;
             }
             return token;
         },
         session({session, token}) {
-            session.user.id = token.id as string;
+            session.user.id = token.id;
             return session;
         }
     }
