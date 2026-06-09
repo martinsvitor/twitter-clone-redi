@@ -1,4 +1,4 @@
-import {prisma} from '@/app/lib/prisma';
+import {prisma} from '@/app/lib/db/prisma';
 import {TweetWithAuthor} from '@/app/lib/definitions';
 import {generateHandle, getAvatarForHandle} from '@/app/lib/utils';
 import bcrypt from 'bcryptjs';

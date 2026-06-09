@@ -3,7 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
 import {PrismaAdapter} from '@auth/prisma-adapter';
-import {prisma} from '@/app/lib/prisma';
+import {prisma} from '@/app/lib/db/prisma';
 import {AdapterUser} from '@auth/core/adapters';
 import bcrypt from 'bcryptjs';
 import {generateAvatar, generateHandle} from '@/app/lib/utils';

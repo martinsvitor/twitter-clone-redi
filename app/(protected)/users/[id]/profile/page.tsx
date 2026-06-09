@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { prisma } from "@/app/lib/prisma";
+import { prisma } from "@/app/lib/db/prisma";
 import ProfilePage from "./ProfilePage";
 
 interface Props {
